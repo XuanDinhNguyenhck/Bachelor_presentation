@@ -1,0 +1,173 @@
+/*-- scss:defaults --*/
+
+// CTU FEE accent colour — darker blue for stronger contrast of bold text/links.
+$ctu-blue: #00427C;
+
+// Fonts — Lato: warm humanist sans with full Czech diacritic coverage
+// (ě š č ř ž ů ď ť ň ó á í é ú). The face files are embedded as base64
+// WOFF2 in `_lato_fontface.scss` (imported in the rules section below), so
+// the self-contained HTML renders identically offline on the defense PC —
+// no Google Fonts, no reliance on a system-installed font.
+$font-family-sans-serif: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif !default;
+
+// Colours
+$body-color: #222 !default;
+$link-color: $ctu-blue !default;
+$selection-bg: rgba($ctu-blue, 0.25) !default;
+
+// Headings — keep dark for readability, just a touch heavier.
+$presentation-heading-color: #1a1a1a !default;
+$presentation-heading-font-weight: 600 !default;
+
+// Slightly larger base text than the simple theme's 40px default.
+$presentation-font-size-root: 44px !default;
+
+/*-- scss:rules --*/
+
+// Lato @font-face (embedded base64 WOFF2) is injected via `include-in-header:
+// lato-font.html` in the YAML header — Quarto's SCSS preprocessor cannot
+// parse the large data: URIs, so the faces live in a plain <style> instead.
+
+// Slide titles: a subtle CTU-blue underline accent. Kept compact so the title
+// row does not eat the vertical space the dense slides need.
+.reveal .slide h2 {
+  font-size: 1.5em;
+  line-height: 1.1;
+  border-bottom: 2px solid rgba($ctu-blue, 0.30);
+  padding-bottom: 0.1em;
+  margin-bottom: 0.4em;
+}
+
+// Force the two-column layout to stay side-by-side. On some slides the
+// `.columns` flex declaration was being overridden (computed `display:inline`),
+// which made the `.column` blocks stack vertically and overflow the slide.
+.reveal .columns {
+  display: flex !important;
+  align-items: flex-start;
+}
+
+// Let columns shrink below their content's intrinsic size (e.g. a wide image),
+// so a figure can't force the row to overflow horizontally.
+.reveal .columns > .column {
+  min-width: 0;
+}
+
+// Tighten vertical rhythm so content slides fit without overflowing.
+.reveal .slide ul,
+.reveal .slide ol {
+  margin-bottom: 0.35em;
+}
+
+.reveal .slide li {
+  line-height: 1.25;
+  margin-bottom: 0.1em;
+}
+
+.reveal .slide p {
+  margin: 0.3em 0;
+}
+
+// Bold inline text picks up the accent so key terms stand out.
+.reveal .slide strong {
+  color: $ctu-blue;
+}
+
+// Final take-home banner.
+.reveal .takehome {
+  margin-top: 0.45em;
+  padding: 0.45em 0.9em;
+  background: $ctu-blue;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 1.05em;
+  text-align: center;
+  line-height: 1.35;
+
+  strong { color: #fff; }   // keep banner text white, not blue
+}
+
+// Roadmap list in the intro.
+.reveal .roadmap {
+  font-size: 0.92em;
+
+  li { margin-bottom: 0.15em; }
+}
+
+// Standing footer + slide number: small and unobtrusive, CTU-blue tint.
+.reveal .footer {
+  color: rgba($ctu-blue, 0.75);
+  font-size: 0.42em;
+  letter-spacing: 0.02em;
+}
+
+.reveal .slide-number {
+  color: rgba($ctu-blue, 0.7);
+}
+
+// Questions slides are excluded from the slide count (visibility="uncounted")
+// AND show no number at all. The slides carry data-state="qa-hide" + class .qa;
+// reveal applies the state name as a class on its root while the slide is open,
+// so we hide the (global) .slide-number element on those slides. Multiple
+// selectors cover whichever element reveal attaches the state class to, plus a
+// modern :has() fallback.
+.reveal.qa-hide .slide-number,
+html.qa-hide .slide-number,
+body.qa-hide .slide-number,
+.reveal:has(section.qa.present) .slide-number {
+  display: none !important;
+}
+
+// The slide-menu plugin (press M) ships its own Source-Sans-Pro stack; align
+// it with the embedded Lato so the menu's Czech titles match the deck.
+.slide-menu-wrapper,
+.slide-menu-wrapper * {
+  font-family: $font-family-sans-serif !important;
+}
+
+// Intro (slide 2) figure: fill the column width but cap the height so the
+// near-square image never makes the slide taller than one page (otherwise
+// reveal's print-pdf splits the heading and body onto separate PDF pages).
+.reveal .intro-fig {
+  width: 100%;
+  max-height: 560px;
+  height: auto;
+  object-fit: contain;
+}
+
+// PDF fallback for the results videos: a PDF can't play video, so on screen we
+// show the live <video class="screen-only">, and when printing (Chrome
+// ?print-pdf / Ctrl+P) we swap to a still frame <img class="print-only">.
+.print-only { display: none; }
+@media print {
+  .reveal .screen-only { display: none !important; }
+  .reveal .print-only  { display: inline-block !important; }
+}
+
+// Pause-screen video wall (press b / v / .): reveal's default pause shows a
+// plain black screen — instead we cover the viewport with the deck's own clips,
+// played one after another as a looping playlist (one full-size clip at a
+// time). Markup + behaviour live in `pause-videos.html` (include-after-body),
+// which clones the deck videos in on `paused` and clears them on `resumed` by
+// toggling `.show`. Hidden by default so it never appears on a normal slide, in
+// the PDF (print) export, or in the PPTX screenshots.
+#pause-videos {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;            // above reveal's own black pause-overlay (z 100)
+  background: #000;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5vh 2vw;
+  box-sizing: border-box;
+}
+#pause-videos.show { display: flex; }
+#pause-videos video {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  background: #000;
+}
+@media print { #pause-videos { display: none !important; } }
