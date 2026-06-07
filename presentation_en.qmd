@@ -169,6 +169,7 @@ format:
 1. Pro inverzní kinematiku polohovadla jsem implementoval **analytické řešení**.
   - S požadavkem na **orientaci svaru vůči gravitaci**.
 2. Ten nám umožňuje **rychle najít řešení** a zároveň poskytuje **více řešení** v rámci kloubových limitů.
+   
 3. Na tomto slidu vidíte **dvě řešení** — první a druhou **konfiguraci polohovadla**.
 :::
 
@@ -192,7 +193,9 @@ Tool deviation in the torch frame: **work angle $\alpha$**, **travel angle $\bet
 
 ::: {.notes}
 - Pro hořák jsme definovali **tři stupně volnosti** jako **relaxaci**.
+
 - Otáčení kolem osy hořáku o úhel **γ** je **volné**, protože hořák je **symetrický**.
+
 - Odchylka náklonu — úhly **α** a **β**. 
 :::
 
@@ -216,7 +219,9 @@ Tilting the workpiece relative to gravity: **roll $\xi$** (about the X axis) and
 
 ::: {.notes}
 - Relaxaci používáme i pro **polohovadlo**.
+  
 - Odchylka od **ideální orientace** (proti gravitaci) je definována úhly **roll** a **slope**.
+  
 - **Penalizaci** za odklon hořáku od ideální polohy i za odchylku svaru od vodorovnosti určuje **technolog**.
 <!-- - penalizaci pro odklonu horaku od idealni polohy i svaru od vodorovnosti urcuje technolog. -->
 <!-- - Tentokrát **technolog** určuje, jak svařovaný model naklonit. -->
@@ -337,8 +342,11 @@ TODO add figure from rviz. -->
 
 ::: {.notes}
 - Na závěr bych vám rád ukázal **rozdíl** mezi svařováním **bez relaxace** a **s relaxací**.
+  
 - U tohoto konkrétního testovacího svařence se ukazuje, že relaxace nepomáhá kvalitě trajektorie v kloubových souřadnicích. 
+
 - Externí osa spolu s polohovadlem vykonává větší pohyby než u trajektorie bez relaxace. 
+
 - V některých případech však tato relaxace umožňuje vyhnout se problematickým konfiguracím a kolizím
 :::
 
@@ -355,8 +363,11 @@ TODO add figure from rviz. -->
 
 ::: {.notes}
 1. **Symbolu J(q) — sekce 2.2 vs. 2.3.1 (str. 3):** Správně směřovat na sekci 2.3.1, kde je Jakobián a manipulovatelnost skutečně definována.
+   
 2. **Externí rotační osa (str. 5):** Je to přídavná jednoosá rotační osa (joint_71, E-osa), která je robotická ruka namontována.
+   
 3. **Vodorovná svářecí orientace (str. 5):** Je to optimální poloha svaru, kdy je svar orientován tak, aby gravitace pomáhala udržet tavnou lázeň ve správné poloze, a polohovadlo se tuto orientaci snaží udržovat.
+   
 4. **„6-DOF welding pose" vs. 5 DOF (str. 10):** Poloha hořáku v prostoru je vždy šestirozměrná (poloha + orientace).
 :::
 

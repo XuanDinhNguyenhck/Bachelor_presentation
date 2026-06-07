@@ -59,16 +59,59 @@
     'body[data-speaker-layout="' + LAYOUT_ID + '"] .speaker-controls-notes .value {',
     '  font-size: 1.5em !important; line-height: 1.5 !important;',
     '}',
-    /* Slim clock/timer row (kept — a defense is timed). Delete this block to hide it. */
-    'body[data-speaker-layout="' + LAYOUT_ID + '"] .speaker-controls-time {',
-    '  padding: 6px 16px !important; margin-bottom: 6px !important;',
+    /* Hide the "Notes" heading in every layout to give the notes more room. */
+    '.speaker-controls-notes .label { display: none !important; }',
+    /* Tighter head space above the notes script — on EVERY slide. Tight-list  */
+    /* notes lead with <ol>/<ul>; "loose" lists (blank line between items) wrap */
+    /* each item in <p>, whose top margin collapses up and re-opens the gap. So */
+    /* zero the first block AND the first-child elements nested inside it.       */
+    '.speaker-controls-notes { padding-top: 2px !important; }',
+    '.speaker-controls-notes .value { margin-top: 0 !important; }',
+    '.speaker-controls-notes .value > :first-child,',
+    '.speaker-controls-notes .value > :first-child > :first-child,',
+    '.speaker-controls-notes .value > :first-child > :first-child > :first-child,',
+    '.speaker-controls-notes .value > :first-child > :first-child > :first-child > :first-child { margin-top: 0 !important; }',
+    /* Compact the clock/timer row in EVERY layout: smaller space above and    */
+    /* below (built-in is 10px top / 20px bottom / 10px margin). Left/right     */
+    /* padding (16px) is left untouched.                                        */
+    '.speaker-controls-time {',
+    '  padding-top: 4px !important; padding-bottom: 4px !important;',
+    '  margin-bottom: 4px !important;',
     '}',
-    'body[data-speaker-layout="' + LAYOUT_ID + '"] .speaker-controls-time .timer,',
-    'body[data-speaker-layout="' + LAYOUT_ID + '"] .speaker-controls-time .clock,',
-    'body[data-speaker-layout="' + LAYOUT_ID + '"] .speaker-controls-time .pacing .hours-value,',
-    'body[data-speaker-layout="' + LAYOUT_ID + '"] .speaker-controls-time .pacing .minutes-value,',
-    'body[data-speaker-layout="' + LAYOUT_ID + '"] .speaker-controls-time .pacing .seconds-value {',
-    '  font-size: 1.2em !important;',
+    /* Inline elapsed timer → "TIME: MM:SS": label inline, hours dropped (the   */
+    /* minutes span keeps a leading colon, stripped in JS — see setupInlineTimer). */
+    '.speaker-controls-time .label:not(.pacing-title) {',
+    '  display: inline-block !important; float: none !important;',
+    '  margin: 0 0.35em 0 0 !important; vertical-align: baseline !important;',
+    '}',
+    '.speaker-controls-time .timer {',
+    '  display: inline-block !important; float: none !important;',
+    '  width: auto !important; vertical-align: baseline !important;',
+    '}',
+    '.speaker-controls-time .hours-value { display: none !important; }',
+    /* Bigger TIME number + label in EVERY layout (was touch-only) so all      */
+    /* layouts match the Touch look. Spacing unchanged. Notes-only overrides    */
+    /* these below (more specific) to stay small, as requested earlier.         */
+    '.speaker-controls-time .timer,',
+    '.speaker-controls-time .clock,',
+    '.speaker-controls-time .pacing .hours-value,',
+    '.speaker-controls-time .pacing .minutes-value,',
+    '.speaker-controls-time .pacing .seconds-value {',
+    '  font-size: 1.5em !important;',
+    '}',
+    '.speaker-controls-time .label:not(.pacing-title) { font-size: 0.95em !important; }',
+
+    /* --- Built-in "Notes only" layout keeps the clock/timer small (70%        */
+    /*     smaller number + a matching small label) so it doesn't dominate. --- */
+    'body[data-speaker-layout="notes-only"] .speaker-controls-time .timer,',
+    'body[data-speaker-layout="notes-only"] .speaker-controls-time .clock,',
+    'body[data-speaker-layout="notes-only"] .speaker-controls-time .pacing .hours-value,',
+    'body[data-speaker-layout="notes-only"] .speaker-controls-time .pacing .minutes-value,',
+    'body[data-speaker-layout="notes-only"] .speaker-controls-time .pacing .seconds-value {',
+    '  font-size: 0.57em !important;',
+    '}',
+    'body[data-speaker-layout="notes-only"] .speaker-controls-time .label:not(.pacing-title) {',
+    '  font-size: 0.5em !important;',
     '}',
 
     /* Keep the layout dropdown tappable above the invisible tap zones. */
@@ -160,6 +203,9 @@
         });
       }
 
+      // 3b) Reformat the elapsed timer as an inline "TIME: MM:SS" (no hours).
+      setupInlineTimer(win, doc);
+
       // 4) Make "Touch" the active layout on open. Dispatching 'change' reuses
       //    the plugin's own setLayout() (sets the body attribute + persists it).
       var labelEl = doc.querySelector(".speaker-layout-label");
@@ -179,6 +225,41 @@
       refreshLabel();
     } catch (e) {
       if (window.console) console.warn("speaker-touch: injection failed", e);
+    }
+  }
+
+  // Render the elapsed timer inline as "TIME: MM:SS". The plugin rewrites the
+  // timer every second as three spans — hours "00", minutes ":MM", seconds
+  // ":SS". CSS hides the hours span and lays the label + timer inline; here we
+  // relabel to "TIME:" and strip the minutes' leading colon (the one that used
+  // to sit between hours and minutes) so it reads MM:SS, keeping it stripped on
+  // every per-second update via a MutationObserver.
+  function setupInlineTimer(win, doc) {
+    var box = doc.querySelector(".speaker-controls-time");
+    if (!box) return;
+
+    // "Time  Click to Reset" → "TIME:" (click-to-reset still works on the row).
+    var label = box.querySelector(".label:not(.pacing-title)");
+    if (label) label.textContent = "TIME:";
+
+    var timer = box.querySelector(".timer");
+    if (!timer) return;
+    var min = timer.querySelector(".minutes-value");
+
+    function stripLeadingColon() {
+      if (min && min.textContent.charAt(0) === ":") {
+        min.textContent = min.textContent.slice(1); // ":MM" → "MM"
+      }
+    }
+    stripLeadingColon();
+
+    // Re-strip after each per-second rewrite. Stripping is idempotent (after it
+    // runs the value no longer starts with ":"), so the observer can't loop.
+    try {
+      var mo = new win.MutationObserver(stripLeadingColon);
+      mo.observe(timer, { childList: true, subtree: true, characterData: true });
+    } catch (e) {
+      win.setInterval(stripLeadingColon, 500); // fallback if no MutationObserver
     }
   }
 })();
