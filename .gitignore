@@ -1,0 +1,58 @@
+# ===========================================================================
+#  .gitignore — bachelor's thesis defense presentation
+#  Tracked deliverables: presentation_en.html + presentation_en.pdf, plus all
+#  sources (*.qmd, custom.scss, *.html includes, build scripts, figures/).
+#  Everything generated/cached below is rebuilt by ./build.sh — keep it out.
+#  Root-only outputs are anchored with a leading "/" so they don't also match
+#  same-named files in subfolders (e.g. test/presentation.pdf).
+# ===========================================================================
+
+# --- Editor / IDE (the .vscode browse DB alone is ~1 GB) -------------------
+.vscode/
+*.code-workspace
+
+# --- Quarto cache & auto-downloaded typst packages -------------------------
+.quarto/
+/_freeze/
+/site_libs/
+
+# --- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+
+# --- OS junk ---------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# --- Build bundles (timestamped .zip from `./build.sh zip`) ----------------
+/presentation_*.zip
+
+# --- Quarto error artifact -------------------------------------------------
+/_quarto_internal_scss_error.scss
+
+# --- Draft / manual backup copies of the deck ------------------------------
+/presentation_en_draf.html
+/presentation_en_save.html
+/presentation_en_save_2.html
+
+# --- Frozen Czech deck rendered outputs (rebuild from presentation.qmd) -----
+/presentation.html
+/presentation.pdf
+/presentation.pptx
+
+# --- English deck generated outputs we DON'T track -------------------------
+#     (the slide HTML + slide PDF ARE tracked; these are not)
+/presentation_en.pptx
+/presentation_en_notes.pdf
+
+# --- Legacy Beamer deck (test/): keep only .tex + build.sh, drop the rest ---
+test/*.pdf
+test/*.aux
+test/*.fdb_latexmk
+test/*.fls
+test/*.log
+test/*.nav
+test/*.out
+test/*.snm
+test/*.toc
+test/*.synctex.gz

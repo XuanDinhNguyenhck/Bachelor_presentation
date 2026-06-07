@@ -1,0 +1,87 @@
+---
+title: "Poznámky k obhajobě — čtecí text"
+subtitle: "Generování trajektorií pro redundantní svařovací robot · Xuan Dinh Nguyen"
+lang: cs
+format:
+  typst:
+    papersize: a4
+    margin: { x: 2cm, y: 2cm }
+    fontsize: 12pt
+---
+
+
+# 1. Titulní slide
+
+- Dobrý den, vážení. Vítám vás u obhajoby své bakalářské práce na téma **Generování trajektorií pro redundantní svařovací robot**.
+- Úvodem bych jen rád poděkoval panu vedoucímu za jeho pomoc a cenné připomínky.
+
+# 2. Introduction
+
+~60 s.
+
+- Rád bych vám představil naše **svařovací pracoviště** — **devítiosou robotickou buňku**.
+- Jde o koordinaci **tří částí**: **dvouosé polohovadlo**, **šestiosé robotické rameno** a **jedna externí rotační osa**.
+- Cílem mé práce bylo tento systém **plně zautomatizovat** — tedy na základě vstupního **G-kódu** automaticky vygenerovat kompletní svařovací trajektorii.
+- Vpravo na slidu vidíte vizualizaci v prostředí **RViz** s robotem, externí osou a polohovadlem.
+- **Oranžově** je znázorněn samotný svařovaný model.
+
+# 3. System overview
+
+~55 s.
+
+- Nyní se podíváme na samotný **plánovací proces** — **čtyři klíčové fáze**.
+- **1. Zpracování G-kódu:** Z něj získáme potřebné **pozice pro svařování**.
+- **2. Volnoprostorové plánování:** Potřebujeme se **bezpečně a bez kolizí** dostat z výchozí parkovací pozice k prvnímu svaru.
+- **3. Kontinuální optimalizace:** Ta minimalizuje různá **kritéria** (kloubové limity, rychlosti, kolize) jako funkci kloubových souřadnic.
+- **4. Kombinatorická optimalizace:** Analytická inverzní kinematika má pro každou pózu **více řešení — větví** — a tento krok z nich vybere **to nejlepší**.
+
+# 4. Method of planning
+
+~45 s.
+
+- Systém má **devět stupňů volnosti**, které jsou rozdělené do **tří podsystémů**: externí osa (q1), rameno (q2–q7) a polohovadlo (q8, q9).
+- Jednotlivá kritéria jsme implementovali jako **penalizační funkce** — kloubové limity, rychlosti a kolize.
+- Používáme dva tvary: **jednostrannou** penalizaci nahoře a **oboustrannou** dole.
+- Například pro kolize penalizujeme **jednostranně** a pro rychlosti **oboustranně**.
+- Na dalším obrázku vidíme **sekvenční plánování** — to znamená, že řešíme **jednu pózu po druhé**: v každé najdeme nejlepší přípustnou konfiguraci a navážeme na předchozí.
+
+# 5. Inverse Kinematic Positioner
+
+~55 s.
+
+- Pro inverzní kinematiku polohovadla jsem implementoval **analytický IKT2** s požadavkem na **orientaci svaru vůči gravitaci**.
+- Ten nám umožňuje **rychle najít řešení** a zároveň poskytuje **více větví řešení** v rámci kloubových limitů.
+- Na tomto slidu vidíte **dvě z těchto větví** — první a druhou konfiguraci polohovadla — pro stejnou pozici svaru.
+
+# 6. Torch relaxation (3 DOF)
+
+~50 s.
+
+- Pro hořák jsme definovali **tři stupně volnosti** jako relaxaci.
+- Otáčení kolem osy hořáku o úhel **γ** je **volné**, protože hořák je symetrický.
+- Míru náklonu — úhly **α a β** — nám určuje **technolog** podle kvality a vlastností svařování.
+
+# 7. Positioner relaxation (2 DOF)
+
+~50 s.
+
+- Pokračujeme dál — relaxaci používáme i pro **polohovadlo**.
+- Tentokrát **technolog** určuje, jak svařovaný model naklonit.
+- Míra jeho odchylky od **ideální orientace** (proti gravitaci) je definována úhly **roll** a **slope**.
+
+# 8. Contribution
+
+~70 s.
+
+- Rád bych shrnul **hlavní přínosy a implementační kroky**, které jsem musel pro tento projekt udělat.
+- Nejprve jsem musel implementovat **nové pracoviště** — to zahrnovalo **generování SRDF** a zjednodušení kolizního modelu pro MoveIt 2, aktualizaci parametrů **kinematického řešiče** pro rameno a rozšíření **účelové funkce** o nová kritéria.
+- Dále jsem integroval **polohovadlo** — implementoval jsem pro něj **inverzní kinematický řešič**, přidal orientační požadavky a aplikoval **relaxaci**.
+- Nakonec jsem migroval celý plánovač na **ROS 2 Humble**, aktualizoval optimalizační řešič s novými parametry, změnil vnitřní komunikaci mezi uzly a přidal **uživatelské rozhraní**.
+
+# 9. Results
+
+~70 s.
+
+- Na závěr bych vám rád ukázal **rozdíl mezi svařováním bez relaxace a s relaxací**.
+- **Vlevo bez relaxace** to vizuálně vypadá stabilně, ale **trajektorie skáče** kvůli hranám.
+- **Vpravo s plnou relaxací** vidíme, že nám odchylka **pohyb zjemňuje**, ale systém se přitom **musí víc pohybovat**.

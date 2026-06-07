@@ -1,0 +1,162 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+
+% Metadata
+\title[Trajectory Gen. for Redundant Welding Robot]{Trajectory Generation for Redundant Welding Robot with Positioner}
+\author{Xuan Dinh Nguyen}
+\institute[CTU in Prague]{
+    Czech Technical University in Prague\\
+    Faculty of Electrical Engineering\\
+    Department of Cybernetics
+}
+\date{\today}
+
+\begin{document}
+
+% Slide 1: Title
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% Slide 2: Motivation
+\begin{frame}{Motivation \& Problem Statement}
+    \begin{itemize}
+        \item \textbf{Complex Geometry:} Robotic welding often involves complex parts where a standard 6-DOF arm cannot reach all seams due to collisions or kinematic limits.
+        \item \textbf{Redundancy:} Adding a positioner (e.g., 2-DOF) increases the total degrees of freedom (9-DOF system), creating kinematic redundancy.
+        \item \textbf{Goal:} Develop a complete software solution to automatically plan motions and generate trajectories for this 9-DOF welding cell directly from standard G-code.
+    \end{itemize}
+\end{frame}
+
+% Slide 3: System Overview
+\begin{frame}{System Overview}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \textbf{Hardware Setup:}
+        \begin{itemize}
+            \item 6-DOF Industrial Robotic Arm
+            \item 2-DOF Rotary Positioner
+            \item 1 External Rotational Joint
+        \end{itemize}
+        
+        \vspace{0.5cm}
+        \textbf{Software Stack:}
+        \begin{itemize}
+            \item ROS 2 (Humble)
+            \item MoveIt 2
+            \item Ceres Solver for optimisation
+        \end{itemize}
+        
+        \column{0.5\textwidth}
+        \textbf{Workflow:}
+        \begin{enumerate}
+            \item Input: Standard G-code
+            \item Inverse Kinematics (Analytical)
+            \item Redundancy Resolution (Optimisation)
+            \item Collision-free repositioning
+            \item Output: Time-parametrised joint trajectory
+        \end{enumerate}
+    \end{columns}
+\end{frame}
+
+% Slide 4: Kinematics
+\begin{frame}{Kinematic Approach}
+    \begin{itemize}
+        \item \textbf{Analytical Foundation:}
+        \begin{itemize}
+            \item Closed-form inverse kinematics (IK) derived for both the arm and the positioner.
+            \item Faster and more reliable than purely numerical IK solvers.
+        \end{itemize}
+        \item \textbf{Handling Redundancy:}
+        \begin{itemize}
+            \item The system has more DOFs than strictly necessary for a 6D pose.
+            \item We use non-linear optimisation (Ceres Solver) to find the best configuration among infinite possibilities.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+% Slide 5: The Key Concept - Pose Relaxation
+\begin{frame}{Pose Relaxation Strategy}
+    To navigate singularities and restrictive geometries, the strict rigid welding pose is relaxed in 5 DOFs:
+    
+    \vspace{0.3cm}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \textbf{Positioner Relaxation:}
+        \begin{itemize}
+            \item Roll ($\xi_{p}$)
+            \item Slope ($\theta_{p}$)
+        \end{itemize}
+        
+        \column{0.5\textwidth}
+        \textbf{Arm Torch Relaxation:}
+        \begin{itemize}
+            \item Work angle ($\alpha_{\mathrm{arm}}$)
+            \item Travel angle ($\beta_{\mathrm{arm}}$)
+            \item Torch spin ($\gamma_{\mathrm{arm}}$)
+        \end{itemize}
+    \end{columns}
+    
+    \vspace{0.5cm}
+    \begin{center}
+        \textit{This gives the optimiser the freedom to smoothly adapt the tool orientation without violating process requirements.}
+    \end{center}
+\end{frame}
+
+% Slide 6: Trajectory Optimisation
+\begin{frame}{Trajectory Optimisation}
+    The optimal configuration is found by minimising an objective function that balances multiple criteria:
+    \begin{itemize}
+        \item \textbf{Manipulability:} Keeping the robot far from singular configurations.
+        \item \textbf{Joint Limits:} Penalising configurations near the mechanical bounds.
+        \item \textbf{Collision Avoidance:} Maximising clearance from obstacles.
+        \item \textbf{Smoothness:} Ensuring smooth transitions between waypoints across the continuous weld seam.
+    \end{itemize}
+\end{frame}
+
+% Slide 7: Repositioning (Free Space)
+\begin{frame}{Rapid Repositioning}
+    \begin{itemize}
+        \item Between welding seams (air moves), the robot must reposition quickly and safely.
+        \item \textbf{Method:} RRT-Connect planner.
+        \item \textbf{Advantages:}
+        \begin{itemize}
+            \item Sampling-based approach perfectly suited for high-dimensional configuration spaces (9-DOF).
+            \item Guarantees collision-free paths around complex workpieces.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+% Slide 8: Implementation \& Results
+\begin{frame}{Implementation \& Results}
+    \begin{itemize}
+        \item \textbf{Modularity:} Built as a set of modular ROS 2 nodes, integrating seamlessly with MoveIt 2.
+        \item \textbf{User Interface:} Custom GUI (PyQt5) for easy operation and monitoring.
+        \item \textbf{Validation:} Successfully generates smooth, collision-free trajectories for complex test geometries that would fail with naive 6-DOF approaches.
+    \end{itemize}
+\end{frame}
+
+% Slide 9: Conclusion
+\begin{frame}{Conclusion}
+    \begin{itemize}
+        \item Developed a robust, automated pipeline for a 9-DOF redundant welding cell.
+        \item Analytical kinematics combined with non-linear optimisation provides both reliability and flexibility.
+        \item The 5-DOF relaxation strategy is the key enabler for welding complex parts.
+        \item Fully integrated into a modern ROS 2 software stack.
+    \end{itemize}
+    
+    \vspace{0.5cm}
+    \begin{center}
+        \Large \textbf{Thank you for your attention!}
+    \end{center}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,83 @@
+<!--
+  Pause-screen video wall.
+
+  reveal.js toggles "pause" (a plain black screen) on the keys b / v / . — see
+  togglePause, bound to keyCodes [58,59,66,86,190,191] in the bundled reveal.js.
+  Instead of that black screen, we cover the viewport with the clips actually
+  used in the deck (the intro welding render + the two RViz results clips),
+  played one after another (a single looping playlist), each shown full-size.
+
+  Implementation: on reveal's `paused` event we CLONE the deck's own <video>
+  elements into the overlay (we don't reference the files again), so nothing is
+  embedded twice in the self-contained HTML and the wall auto-tracks whatever
+  videos the deck contains. We then play them as a playlist: only the active
+  clip is visible, and when it `ended`s we advance to the next (wrapping back to
+  the first), so the sequence loops. On `resumed` we stop and clear them. The
+  overlay is display:none by default (CSS in custom.scss), so it never shows on
+  a normal slide, in the print/PDF export, or in the PPTX screenshots.
+-->
+<div id="pause-videos" aria-hidden="true"></div>
+<script>
+(function () {
+  function init() {
+    if (!window.Reveal || !window.Reveal.on) { return setTimeout(init, 150); }
+    var box = document.getElementById('pause-videos');
+    if (!box) { return; }
+
+    Reveal.on('paused', function () {
+      box.innerHTML = '';
+      var clips = [];
+      var deckVideos = document.querySelectorAll('.reveal .slides video');
+      deckVideos.forEach(function (src) {
+        var v = src.cloneNode(true);
+        v.classList.remove('screen-only', 'print-only', 'intro-fig');
+        v.removeAttribute('data-autoplay');
+        v.removeAttribute('width');
+        // Drop the Results slide's inline style (width/max-height:470px/
+        // background:#fff) so the overlay CSS governs every clip uniformly —
+        // otherwise those two clips stay capped at 470px on a white box.
+        v.removeAttribute('style');
+        v.muted = true;
+        v.loop = false;          // playlist advances manually; clips must end
+        v.controls = false;
+        v.setAttribute('playsinline', '');
+        v.style.display = 'none'; // only the active clip is shown
+        box.appendChild(v);
+        clips.push(v);
+      });
+      if (!clips.length) { return; }
+
+      // Play as a looping playlist: show one clip, and on `ended` advance to
+      // the next (wrapping to the first) so the sequence repeats.
+      function playAt(i) {
+        clips.forEach(function (c, j) {
+          if (j !== i) { try { c.pause(); } catch (e) {} c.style.display = 'none'; }
+        });
+        var v = clips[i];
+        v.style.display = '';
+        try { v.currentTime = 0; v.play(); } catch (e) {}
+      }
+      clips.forEach(function (v, i) {
+        v.addEventListener('ended', function () { playAt((i + 1) % clips.length); });
+      });
+
+      box.classList.add('show');
+      playAt(0);
+    });
+
+    Reveal.on('resumed', function () {
+      box.classList.remove('show');
+      box.querySelectorAll('video').forEach(function (v) {
+        try { v.pause(); } catch (e) {}
+      });
+      box.innerHTML = '';
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
