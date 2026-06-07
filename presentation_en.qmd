@@ -10,7 +10,9 @@ format:
   revealjs:
     theme: [simple, custom.scss]
     include-in-header: lato-font.html
-    include-after-body: pause-videos.html
+    include-after-body:
+      - pause-videos.html
+      - speaker-touch.html
     slide-number: c/t
     progress: true
     transition: fade
@@ -401,7 +403,7 @@ TODO add figure from rviz. -->
 -->
 
 ::: {.notes}
-1. **C++ a nutnost rekompilace (str. 46):** Napsal jsem tam jasně vysvětlení. Parametry byly v kódu pevně zapsány jako konstanty. Přesunem do ROS 2 se nyní parametry načítají za běhu z YAML souborů, takže není potřeba rekompilace.
+1. **C++ a nutnost rekompilace (str. 46):** Napsal jsem tam nejasné vysvětlení. Parametry byly v kódu pevně zapsány jako konstanty. Přesunem do ROS 2 se nyní parametry načítají za běhu z YAML souborů, takže není potřeba rekompilace.
 2.  **Termín „closed-form solution":** Je to vzorec, který vypočítá výsledek přímo konečným počtem algebraických a goniometrických operací bez iterace, na rozdíl od numerického řešiče — analytické IKT6 i IKT2 jsou takovým uzavřeným řešením.
 :::
 
@@ -419,5 +421,5 @@ TODO add figure from rviz. -->
 ::::
 
 ::: {.notes}
-**Validita větve z grafů (str. 55):** Validitu neurčují jen vykreslené průběhy ceny, ale i nevykreslená tvrdá omezení (kloubové limity, kolize a detekce změny konfigurace), a v první větvi naráží rotační kloub polohovadla q9 na svůj kloubový limit, takže žádný bod této větve nesplní všechna omezení.
+**Validita větve z grafů (str. 55):** Na prvním grafu je vidět, že rotační kloub q9 polohovadla naráží na kloubový limit, který je zobrazen přerušovanou oranžovou čárou. Na druhém grafu naopak robot svařuje v rámci svých kloubových limitů.
 :::
